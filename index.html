@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wukong Death Counter Widget</title>
+    <style>
+        @font-face {
+            font-family: 'Saphifen';
+            src: url('/1.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: transparent;
+            font-family: 'Saphifen', serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+        }
+
+        .death-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 400px;
+            height: 150px;
+            padding: 10px 20px;
+        }
+
+        .ornament {
+            width: 330px;
+            height: 22px;
+            color: #c9c8c7;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.85)) url(#wukong-brush-filter);
+        }
+
+        .ornament-top {
+            transform: translateY(4px);
+        }
+
+        .ornament-bottom {
+            transform: translateY(-4px) scaleY(-1);
+        }
+
+        .death-container.show-lines .ornament {
+            opacity: 0.85;
+            transform: translateY(0);
+        }
+
+        .death-container.show-lines .ornament-bottom {
+            transform: scaleY(-1);
+        }
+
+        .death-text-wrapper {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            text-align: center;
+            gap: 16px;
+            margin: 4px 0;
+            transform: scale(0.96);
+            filter: url(#wukong-brush-filter);
+        }
+
+        .death-text-wrapper.animating {
+            animation: stroke-scale 2.4s forwards cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .death-text-wrapper.fade-out {
+            animation: stroke-fade-out 0.4s forwards ease-out;
+        }
+
+        .text-part, .number-part {
+            font-weight: normal;
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            white-space: pre;
+
+            background-image: linear-gradient(
+                125deg,
+                #b2b0ac 0%,
+                #c9c8c7 20%,
+                #dedcd8 42%,
+                #e6e4e0 50%,
+                #dedcd8 58%,
+                #c9c8c7 80%,
+                #b2b0ac 100%
+            );
+            background-size: 880px 260px;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.85));
+
+            opacity: 0;
+        }
+
+        .text-part {
+            font-size: 52px;
+        }
+
+        .text-part.animating {
+            animation: ink-appear 0.6s forwards cubic-bezier(0.1, 0.9, 0.2, 1),
+                       flow-ink-text 16s ease-in-out infinite alternate;
+        }
+
+        .number-part {
+            font-size: 56px;
+            transform: translateY(2px);
+        }
+
+        .number-part.animating {
+            animation: ink-appear 0.6s forwards cubic-bezier(0.1, 0.9, 0.2, 1),
+                       flow-ink-num 16s ease-in-out infinite alternate;
+        }
+
+        .text-part::before, .number-part::before {
+            content: attr(data-content);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 30%, rgba(35, 30, 25, 0.25) 0%, transparent 22%),
+                radial-gradient(circle at 75% 35%, rgba(20, 20, 20, 0.2) 0%, transparent 25%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        @keyframes flow-ink-text {
+            0% {
+                background-position: 0px 15%;
+            }
+            100% {
+                background-position: -440px 85%;
+            }
+        }
+
+        @keyframes flow-ink-num {
+            0% {
+                background-position: -210px 15%;
+            }
+            100% {
+                background-position: -650px 85%;
+            }
+        }
+
+        @keyframes ink-appear {
+            0% {
+                opacity: 0;
+                filter: blur(8px);
+                transform: scale(0.92);
+            }
+            100% {
+                opacity: 1;
+                filter: blur(0);
+                transform: scale(1);
+            }
+        }
+
+        @keyframes stroke-scale {
+            0% { transform: scale(0.96); }
+            100% { transform: scale(1.02); }
+        }
+
+        @keyframes stroke-fade-out {
+            100% {
+                opacity: 0;
+                transform: scale(0.94);
+                filter: blur(6px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <svg style="position: absolute; width: 0; height: 0; pointer-events: none;" aria-hidden="true">
+        <filter id="wukong-brush-filter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.2" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
+
+    <div class="death-container" id="mainContainer">
+        <svg class="ornament ornament-top" viewBox="0 0 360 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 46 12 C 34 12 28 5 18 5 C 9 5 3 11 4 17 C 5 23 13 24 18 20 C 22 17 21 11 16 11 C 12 11 11 14 13 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M 46 12 L 170 12 M 190 12 L 314 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <polygon points="180,7 185,12 180,17 175,12" fill="currentColor"/>
+            <path d="M 314 12 C 326 12 332 5 342 5 C 351 5 357 11 356 17 C 355 23 347 24 342 20 C 338 17 339 11 344 11 C 348 11 349 14 347 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </svg>
+
+        <div class="death-text-wrapper" id="deathTextWrapper"></div>
+
+        <svg class="ornament ornament-bottom" viewBox="0 0 360 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 46 12 C 34 12 28 5 18 5 C 9 5 3 11 4 17 C 5 23 13 24 18 20 C 22 17 21 11 16 11 C 12 11 11 14 13 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+            <path d="M 46 12 L 170 12 M 190 12 L 314 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <polygon points="180,7 185,12 180,17 175,12" fill="currentColor"/>
+            <path d="M 314 12 C 326 12 332 5 342 5 C 351 5 357 11 356 17 C 355 23 347 24 342 20 C 338 17 339 11 344 11 C 348 11 349 14 347 16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+        </svg>
+    </div>
+
+    <script>
+        let lastDeaths = -1;
+        let isAnimating = false;
+
+        function fadeOutCurrent() {
+            const wrapper = document.getElementById('deathTextWrapper');
+            const container = document.getElementById('mainContainer');
+
+            if (wrapper.children.length === 0) return Promise.resolve();
+
+            wrapper.classList.add('fade-out');
+            container.classList.remove('show-lines');
+
+            return new Promise(resolve => setTimeout(resolve, 400));
+        }
+
+        async function updateDeaths(deathCount) {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const wrapper = document.getElementById('deathTextWrapper');
+            const container = document.getElementById('mainContainer');
+
+            if (wrapper.children.length > 0) {
+                await fadeOutCurrent();
+            }
+
+            wrapper.innerHTML = '';
+            wrapper.classList.remove('animating', 'fade-out');
+            container.classList.remove('show-lines');
+
+            void wrapper.offsetWidth;
+
+            wrapper.classList.add('animating');
+            container.classList.add('show-lines');
+
+            const textSpan = document.createElement('span');
+            textSpan.textContent = 'DEATHS:';
+            textSpan.className = 'text-part animating';
+            textSpan.setAttribute('data-content', 'DEATHS:');
+
+            const numberSpan = document.createElement('span');
+            numberSpan.textContent = deathCount.toString();
+            numberSpan.className = 'number-part animating';
+            numberSpan.setAttribute('data-content', deathCount.toString());
+
+            wrapper.appendChild(textSpan);
+            wrapper.appendChild(numberSpan);
+
+            isAnimating = false;
+        }
+
+        function handleData(data) {
+            if (data.deaths === undefined) return;
+
+            if (lastDeaths === -1 || data.deaths !== lastDeaths) {
+                lastDeaths = data.deaths;
+                updateDeaths(data.deaths);
+            }
+        }
+
+        function connectSSE() {
+            const es = new EventSource('/api/events');
+            es.onmessage = e => {
+                try {
+                    handleData(JSON.parse(e.data));
+                } catch (err) {}
+            };
+            es.onerror = () => {
+                es.close();
+                setTimeout(connectSSE, 2000);
+            };
+        }
+
+        connectSSE();
+    </script>
+</body>
+</html>
